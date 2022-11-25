@@ -20,7 +20,12 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 })
 
-//add a new route for :id
+//add a new route to 'new' page
+app.get('/urls/new', (req, res) => {
+  res.render('urls_new');
+});
+
+//add a new route for any ID that goes after urls and doesnt exist yet
 app.get('/urls/:id', (req, res) => {
   const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id] }
   res.render('urls_show', templateVars);
