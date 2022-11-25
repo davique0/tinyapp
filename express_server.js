@@ -12,6 +12,11 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+//add routes from urlDarabase object
+app.get('/urls.json', (req, res) => {
+  res.json(urlDatabase)
+});
+
 //set server with port and sends message with port number
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
