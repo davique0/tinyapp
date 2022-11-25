@@ -10,6 +10,16 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
+//Generate 5 random characters string
+const generateRandomString = () => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomStr = '';
+  for (let i = 0; i < 5; i++) {
+    randomStr += characters[Math.floor(Math.random() * characters.length)];
+  }
+  return randomStr;
+};
+
 //set server request for root path
 app.get("/", (req, res) => {
   res.send('Hello!');
