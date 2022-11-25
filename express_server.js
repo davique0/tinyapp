@@ -2,7 +2,7 @@ const express = require('express'); //add express library
 const app = express(); //define our app as an instance of express
 const PORT = 8080; //defines port at 8080
 
-app.set('view engine', 'ejs')
+app.set('view engine', 'ejs') //set EJS as our template engine
 
 const urlDatabase = {
   'bZxVnZ': 'http://www.lighthouse.ca',
@@ -13,6 +13,12 @@ const urlDatabase = {
 app.get("/", (req, res) => {
   res.send('Hello!');
 });
+
+//add route for /urls
+app.get('/urls', (req, res) => {
+  const templateVars = { urls: urlDatabase }
+  res.render('urls_index', templateVars);
+})
 
 //add routes from urlDarabase object
 app.get('/urls.json', (req, res) => {
