@@ -6,7 +6,7 @@ app.set('view engine', 'ejs'); //set EJS as our template engine
 app.use(express.urlencoded({ extended: true })); //Make buffer readable
 
 const urlDatabase = {
-  'bZxVnZ': 'http://www.lighthouse.ca',
+  'bZxVnZ': 'http://www.lighthouselabs.ca',
   '9sm5xK': 'http://www.google.com'
 };
 
@@ -37,8 +37,9 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.post('/urls', (req, res) => {
-  console.log(req.body); //log the POST request body to the console
-  res.send('Ok'); // Respond with 'Ok'
+  let id = generateRandomString(); //generate random ID
+  urlDatabase[id] = req.body['longURL']; //store ID and long URL into urlDatabase object
+  res.redirect(`/urls/${id}`) // Redirect to new url with id as a path
 });
 
 //add a new route for any ID that goes after urls and doesnt exist yet
@@ -46,6 +47,12 @@ app.get('/urls/:id', (req, res) => {
   const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render('urls_show', templateVars);
 });
+
+//redirect ID to longURL website
+app.get('/u/:id', (req, res) => {
+  const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id] };
+  res.redirect(templateVars.longURL)
+})
 
 //add routes from urlDarabase object
 app.get('/urls.json', (req, res) => {
