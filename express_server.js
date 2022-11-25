@@ -1,6 +1,8 @@
-const express = require("express"); //add express library
+const express = require('express'); //add express library
 const app = express(); //define our app as an instance of express
 const PORT = 8080; //defines port at 8080
+
+app.set('view engine', 'ejs')
 
 const urlDatabase = {
   'bZxVnZ': 'http://www.lighthouse.ca',
@@ -9,7 +11,7 @@ const urlDatabase = {
 
 //set server request for root path
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.send('Hello!');
 });
 
 //add routes from urlDarabase object
@@ -23,7 +25,7 @@ app.get('/hello', (req, res) => {
 });
 
 //send a = 1 to /set path
-app.get("/set", (req, res) => {
+app.get('/set', (req, res) => {
   const a = 1;
   res.send(`a = ${a}`);
 });
