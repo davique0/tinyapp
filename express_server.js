@@ -52,23 +52,28 @@ app.get('/urls/:id', (req, res) => {
 app.get('/u/:id', (req, res) => {
   const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.redirect(templateVars.longURL)
-})
+});
+
+app.post('/urls/:id/delete', (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect('/urls');
+});
 
 //add routes from urlDarabase object
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
-//send HTML as response
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
-});
+// //send HTML as response
+// app.get('/hello', (req, res) => {
+//   res.send('<html><body>Hello <b>World</b></body></html>\n');
+// });
 
-//send a = 1 to /set path
-app.get('/set', (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
-});
+// //send a = 1 to /set path
+// app.get('/set', (req, res) => {
+//   const a = 1;
+//   res.send(`a = ${a}`);
+// });
 
 
 //set server with port and sends message with port number
