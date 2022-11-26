@@ -54,6 +54,12 @@ app.get('/u/:id', (req, res) => {
   res.redirect(templateVars.longURL)
 });
 
+//update URL with a new URL entered in form
+app.post('/urls/:id/update', (req, res) => {
+  urlDatabase[req.params.id] = req.body['longURL'];
+  res.redirect('/urls')
+});
+
 //delete record
 app.post('/urls/:id/delete', (req, res) => {
   delete urlDatabase[req.params.id];
