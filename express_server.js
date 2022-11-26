@@ -54,6 +54,7 @@ app.get('/u/:id', (req, res) => {
   res.redirect(templateVars.longURL)
 });
 
+//delete record
 app.post('/urls/:id/delete', (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
@@ -63,18 +64,6 @@ app.post('/urls/:id/delete', (req, res) => {
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
-
-// //send HTML as response
-// app.get('/hello', (req, res) => {
-//   res.send('<html><body>Hello <b>World</b></body></html>\n');
-// });
-
-// //send a = 1 to /set path
-// app.get('/set', (req, res) => {
-//   const a = 1;
-//   res.send(`a = ${a}`);
-// });
-
 
 //set server with port and sends message with port number
 app.listen(PORT, () => {
