@@ -16,6 +16,24 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        <% if(!username) { %>
+          <form class="d-flex" action="/urls/login" method="POST">
+            
+              <label for="username"></label>
+              <input
+              class="form-control me-2"
+              type="text"
+              name="username"
+              placeholder="username"
+              style="width: 100px; margin: .05em"
+              />
+              <button type="submit" class="btn btn-outline-light">Login</button>
+          </form>
+
+       <% } else { %>
+        <span class="nav-item"><%= username %> logged in</span>
+        <button type="submit" class="btn btn-outline-danger">Logout</button>
+       <% } %>
       </div>
     </div>
   </nav>

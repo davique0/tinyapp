@@ -1,9 +1,11 @@
 const express = require('express'); //add express library
 const app = express(); //define our app as an instance of express
 const PORT = 8080; //defines port at 8080
+const cookieParser = require('cookie-parser');
 
 app.set('view engine', 'ejs'); //set EJS as our template engine
 app.use(express.urlencoded({ extended: true })); //Make buffer readable
+app.use(cookieParser());
 
 const urlDatabase = {
   'bZxVnZ': 'http://www.lighthouselabs.ca',
@@ -27,13 +29,19 @@ app.get("/", (req, res) => {
 
 //add route for /urls
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase,
+  username: req.cookies['username'] 
+  };
+  
   res.render('urls_index', templateVars);
 });
 
 //add a new route to 'new' page
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  const templateVars = {
+    username: req.cookies['username']
+  };
+  res.render('urls_new', templateVars);
 });
 
 app.post('/urls', (req, res) => {
@@ -44,7 +52,7 @@ app.post('/urls', (req, res) => {
 
 //add a new route for any ID that goes after urls and doesnt exist yet
 app.get('/urls/:id', (req, res) => {
-  const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id], username: req.cookies['username'] };
   res.render('urls_show', templateVars);
 });
 
@@ -65,6 +73,20 @@ app.post('/urls/:id/delete', (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });
+
+//Login information into a cookie
+app.post('/urls/login', (req, res) => {
+  // console.log(req.body.username);
+  const username = req.body.username;
+  res.cookie('username', username);
+  // const templateVar = {
+  //   username: req.cookies['username']
+  // }
+  // res.render("_header", templateVar);
+  // console.log(templateVar);
+  // res.send(`login ${username} succesfull`)
+});
+
 
 //add routes from urlDarabase object
 app.get('/urls.json', (req, res) => {
