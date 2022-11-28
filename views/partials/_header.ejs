@@ -1,5 +1,5 @@
 <header>
-  <nav class="navbar navbar-expand-md navbar-dark bg-success">
+  <nav class="navbar navbar-expand-md navbar-dark bg-primary ">
     <a class="navbar-brand" href="/urls">TinyApp</a>
     <button
       class="navbar-toggler"
@@ -17,7 +17,7 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         <% if(!username) { %>
-          <form class="d-flex" action="/urls/login" method="POST">
+          <form class="d-flex" action="/login" method="POST">
             
               <label for="username"></label>
               <input
@@ -32,7 +32,9 @@
 
        <% } else { %>
         <span class="nav-item"><%= username %> logged in</span>
+        <form class="d-flex" action="/logout" method="POST">
         <button type="submit" class="btn btn-outline-danger">Logout</button>
+      </form>
        <% } %>
       </div>
     </div>
