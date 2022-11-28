@@ -75,16 +75,16 @@ app.post('/urls/:id/delete', (req, res) => {
 });
 
 //Login information into a cookie
-app.post('/urls/login', (req, res) => {
-  // console.log(req.body.username);
+app.post('/login', (req, res) => {
   const username = req.body.username;
   res.cookie('username', username);
-  // const templateVar = {
-  //   username: req.cookies['username']
-  // }
-  // res.render("_header", templateVar);
-  // console.log(templateVar);
-  // res.send(`login ${username} succesfull`)
+  res.redirect('/urls')
+});
+
+//logout, clearing out cookies
+app.post('/logout', (req, res) => {
+  res.clearCookie('username')
+  res.redirect('/urls')
 });
 
 
