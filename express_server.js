@@ -87,6 +87,21 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls')
 });
 
+//New User registration
+app.get('/register', (req, res) => {
+  const templateVars = { urls: urlDatabase,
+    username: req.cookies['username'] 
+  }
+  
+  res.render('urls_register', templateVars)
+})
+
+app.post('/register', (req, res) => {
+  const userEmail = req.body.email;
+  const userPass = req.body.password;
+  console.log(userEmail, userPass)
+})
+
 
 //add routes from urlDarabase object
 app.get('/urls.json', (req, res) => {
