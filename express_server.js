@@ -35,12 +35,12 @@ const userDatabase = {
 };
 
 //Check if email and password arent empty and if they are already in the database
-const lookUpHelper = (email, password) => {
-  if (!email || !password) {
+const lookUpHelper = (email) => {
+  if (!email) {
     return null;
   }
   return Object.values(userDatabase).find(u => {
-    return u.email == email && u.password == password
+    return u.email === email
   })
 }
 
@@ -104,7 +104,7 @@ app.post('/login', (req, res) => {
   if(!userEmail || !userPass) {
     res.status(400).send("All fields must be filled out");
   }
-  const user = lookUpHelper(userEmail, userPass);
+  const user = lookUpHelper(userEmail);
   if (user) {
     res.cookie('user_id',{userEmail})
     res.redirect('/urls')
@@ -121,7 +121,8 @@ app.post('/logout', (req, res) => {
 //New User registration
 app.get('/register', (req, res) => {
   const templateVars = { urls: urlDatabase,
-    user: req.cookies['user_id'] 
+    user: req.cookies['user_id'],
+    error: null 
   }
   
   res.render('urls_register', templateVars)
@@ -133,12 +134,31 @@ app.post('/register', (req, res) => {
   const userPass = req.body.password;
   const id = generateRandomString();
   if(!userEmail || !userPass) {
-    res.status(400).send("All fields must be filled out");
+    res.status(400);
+    console.log(userDatabase)
+    const templateVars = {
+      user: null,
+      urls: null,
+      error: 'All fields must filled out'
+    }
+    res.render('urls_register', templateVars)
+  } else {
+      const user = lookUpHelper(userEmail);
+      if (!user){
+        userDatabase.newUser(id, userEmail, userPass)
+        console.log(userDatabase[id]);
+        res.cookie('user_id',{userEmail, userPass})
+        res.redirect('/urls')
+      } else {
+        const templateVars = {
+          user: null,
+          urls: null,
+          error: 'Email already exists'
+        }
+        res.status(400);
+        res.render('urls_register', templateVars)
+      }
   }
-  userDatabase.newUser(id, userEmail, userPass)
-  console.log(userDatabase[id]);
-  res.cookie('user_id',{userEmail, userPass})
-  res.redirect('/urls')
 });
 
 
