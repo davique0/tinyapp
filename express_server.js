@@ -22,6 +22,29 @@ const generateRandomString = () => {
   return randomStr;
 };
 
+//User Database
+const userDatabase = {
+  //Create new user
+  newUser: function(id, email, password) {
+    this[id] = {
+      id : id,
+      email : email,
+      password : password
+    }
+  },
+};
+
+//Check if email and password arent empty and if they are already in the database
+const lookUpHelper = (email, password) => {
+  if (!email || !password) {
+    return null;
+  }
+  return Object.values(userDatabase).find(u => {
+    return u.email == email && u.password == password
+  })
+}
+
+
 //set server request for root path
 app.get("/", (req, res) => {
   res.send('Hello!');
@@ -30,7 +53,7 @@ app.get("/", (req, res) => {
 //add route for /urls
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase,
-  username: req.cookies['username'] 
+  user: req.cookies['user_id'] 
   };
   
   res.render('urls_index', templateVars);
@@ -39,7 +62,7 @@ app.get('/urls', (req, res) => {
 //add a new route to 'new' page
 app.get('/urls/new', (req, res) => {
   const templateVars = {
-    username: req.cookies['username']
+    user: req.cookies['user_id']
   };
   res.render('urls_new', templateVars);
 });
@@ -52,7 +75,7 @@ app.post('/urls', (req, res) => {
 
 //add a new route for any ID that goes after urls and doesnt exist yet
 app.get('/urls/:id', (req, res) => {
-  const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id], username: req.cookies['username'] };
+  const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id], user: req.cookies['user_id'] };
   res.render('urls_show', templateVars);
 });
 
@@ -76,31 +99,47 @@ app.post('/urls/:id/delete', (req, res) => {
 
 //Login information into a cookie
 app.post('/login', (req, res) => {
-  const username = req.body.username;
-  res.cookie('username', username);
-  res.redirect('/urls')
+  const userEmail = req.body.email;
+  const userPass = req.body.password;
+  if(!userEmail || !userPass) {
+    res.status(400).send("All fields must be filled out");
+  }
+  const user = lookUpHelper(userEmail, userPass);
+  if (user) {
+    res.cookie('user_id',{userEmail})
+    res.redirect('/urls')
+  }
+    res.redirect('/register')
 });
 
 //logout, clearing out cookies
 app.post('/logout', (req, res) => {
-  res.clearCookie('username')
+  res.clearCookie('user_id')
   res.redirect('/urls')
 });
 
 //New User registration
 app.get('/register', (req, res) => {
   const templateVars = { urls: urlDatabase,
-    username: req.cookies['username'] 
+    user: req.cookies['user_id'] 
   }
   
   res.render('urls_register', templateVars)
-})
+});
 
+//Create new user un userDatabase
 app.post('/register', (req, res) => {
   const userEmail = req.body.email;
   const userPass = req.body.password;
-  console.log(userEmail, userPass)
-})
+  const id = generateRandomString();
+  if(!userEmail || !userPass) {
+    res.status(400).send("All fields must be filled out");
+  }
+  userDatabase.newUser(id, userEmail, userPass)
+  console.log(userDatabase[id]);
+  res.cookie('user_id',{userEmail, userPass})
+  res.redirect('/urls')
+});
 
 
 //add routes from urlDarabase object
