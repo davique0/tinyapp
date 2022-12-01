@@ -18,22 +18,30 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
-    <% if(!username) { %>
+    <% if(!user) { %>
       <form class="d-flex" action="/login" method="POST">
         
-          <label for="username"></label>
+          <label for="email"></label>
           <input
           class="form-control me-2"
-          type="text"
-          name="username"
-          placeholder="username"
-          style="width: 100px; margin: .05em"
+          type="email"
+          name="email"
+          placeholder="name@email.com"
+          style="width: 200px; margin: .1em"
+          />
+
+          <label for="password"></label>
+          <input
+          class="form-control me-2"
+          type="password"
+          name="password"
+          style="width: 200px; margin: .1em"
           />
           <button type="submit" class="btn btn-outline-light">Login</button>
       </form>
 
    <% } else { %>
-    <span class="nav-item"><%= username %> logged in</span>
+    <span class="nav-item nav-link"><%= user.userEmail %> logged in</span>
     <form class="d-flex" action="/logout" method="POST">
     <button type="submit" class="btn btn-outline-danger">Logout</button>
   </form>
