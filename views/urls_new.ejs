@@ -36,7 +36,11 @@
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>
       </form>
-    </main>
+      <% if(error) { %>
+        <p style="color: red"><%= error %></p>
+        <% } %>
+  
+      </main>
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
