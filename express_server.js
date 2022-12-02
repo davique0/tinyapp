@@ -52,7 +52,8 @@ app.get('/urls', (req, res) => {
   const user = userDatabase[userId];
   const templateVars = {
     urls: urlDatabase,
-    user
+    user,
+    error: null
   };
   
   res.render('urls_index', templateVars);
@@ -64,15 +65,26 @@ app.get('/urls/new', (req, res) => {
   const user = userDatabase[userId];
   const templateVars = {
     urls: urlDatabase,
-    user
+    user,
+    error: null
   };
   res.render('urls_new', templateVars);
 });
 
 app.post('/urls', (req, res) => {
-  let id = generateRandomString(); //generate random ID
-  urlDatabase[id] = req.body['longURL']; //store ID and long URL into urlDatabase object
-  res.redirect(`/urls/${id}`); // Redirect to new url with id as a path
+  const userId = req.cookies['user_id'];
+  if (!userId) {
+    const templateVars = {
+      user: null,
+      urls: null,
+      error: 'Must login first to shorten URL'
+    };
+    res.render('urls_new', templateVars);
+  } else {
+      let id = generateRandomString(); //generate random ID
+      urlDatabase[id] = req.body['longURL']; //store ID and long URL into urlDatabase object
+      res.redirect(`/urls/${id}`)
+    } // Redirect to new url with id as a path
 });
 
 //add a new route for any ID that goes after urls and doesnt exist yet
@@ -90,7 +102,15 @@ app.get('/urls/:id', (req, res) => {
 
 //redirect ID to longURL website
 app.get('/u/:id', (req, res) => {
-  const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const id = req.params.id;
+  const longURL = urlDatabase[req.params.id]
+  if (!longURL) {
+    res.status(404).send('404 Page not found')
+  }
+  const templateVars = {
+    id: id,
+    longURL: longURL
+  }
   res.redirect(templateVars.longURL);
 });
 
@@ -145,6 +165,8 @@ app.get('/login', (req, res) => {
     user,
     error: null
   };
+  //if user already login it will be redirected to urls
+  if (userId) res.redirect('/urls');
   res.render('urls_login', templateVars);
 });
 
@@ -163,6 +185,8 @@ app.get('/register', (req, res) => {
     user,
     error: null,
   };
+  //if user already login it will be redirected to urls
+  if (userId) res.redirect('/urls');
   res.render('urls_register', templateVars);
 });
 
