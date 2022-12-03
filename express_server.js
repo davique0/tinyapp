@@ -2,6 +2,7 @@ const express = require('express'); //add express library
 const app = express(); //define our app as an instance of express
 const PORT = 8080; //defines port at 8080
 const cookieParser = require('cookie-parser');
+const bycrypt = require('bcryptjs');
 
 app.set('view engine', 'ejs'); //set EJS as our template engine
 app.use(express.urlencoded({ extended: true })); //Make buffer readable
@@ -30,9 +31,9 @@ const generateRandomString = () => {
 
 //User Database
 const userDatabase = {
-  'jk2701': {
+  'randomUser1': {
     id: 'jk2701',
-    email: 'mario@guti.com',
+    email: 'email@example.com',
     password: '1234'
   }
 };
@@ -41,7 +42,6 @@ const userDatabase = {
 const lookUpHelper = (email) => {
   for (const userId in userDatabase) {
     if (userDatabase[userId].email === email) {
-      console.log(userId);
       return userDatabase[userId];
     }
   }
@@ -85,7 +85,6 @@ app.get('/urls', (req, res) => {
     };
     res.render('urls_login', templateVars);
   }
-  console.log(userList);
   res.render('urls_index', templateVars);
 });
 
@@ -194,6 +193,7 @@ app.post('/login', (req, res) => {
   const userEmail = req.body.email;
   const userPass = req.body.password;
   const user = lookUpHelper(userEmail);
+  const passVal = bycrypt.compareSync(userPass, user.password);
   if (!userEmail || !userPass) {
     res.status(400);
     const templateVars = {
@@ -203,7 +203,7 @@ app.post('/login', (req, res) => {
     };
     res.render('urls_login', templateVars);
   }
-  if (user && user.password === userPass) {
+  if (user && passVal) { //user.password === userPass
     res.cookie('user_id', user.id);
     res.redirect('/urls');
   } else {
@@ -257,6 +257,7 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
   const userEmail = req.body.email;
   const userPass = req.body.password;
+  const hashedPass = bycrypt.hashSync(userPass, 10);
   const id = generateRandomString();
   if (!userEmail || !userPass) {
     res.status(400);
@@ -272,7 +273,7 @@ app.post('/register', (req, res) => {
       userDatabase[id] = {
         id,
         email: userEmail,
-        password: userPass
+        password: hashedPass 
       };
       res.cookie('user_id', id);
       res.redirect('/urls');
