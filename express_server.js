@@ -8,8 +8,14 @@ app.use(express.urlencoded({ extended: true })); //Make buffer readable
 app.use(cookieParser());
 
 const urlDatabase = {
-  'bZxVnZ': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  'bZxVnZ': {
+    longURL: 'http://www.lighthouselabs.ca',
+    userID: 'aJ48lW'
+  },
+  '9sm5xK': {
+    longURL: 'http://www.google.com',
+    userID: 'aJ48lW'
+  }
 };
 
 //Generate 5 random characters string
@@ -35,10 +41,23 @@ const userDatabase = {
 const lookUpHelper = (email) => {
   for (const userId in userDatabase) {
     if (userDatabase[userId].email === email) {
+      console.log(userId);
       return userDatabase[userId];
     }
   }
   return null;
+};
+
+//Returns personilized urls per user
+const urlsForUser = (id) => {
+  let userIdUrls = {};
+  //urlDatabase.userID === id
+  for (const urlId in urlDatabase) {
+    if (urlDatabase[urlId].userID === id) {
+      userIdUrls[urlId] = urlDatabase[urlId];
+    }
+  }
+  return userIdUrls;
 };
 
 //set server request for root path
@@ -50,12 +69,23 @@ app.get("/", (req, res) => {
 app.get('/urls', (req, res) => {
   const userId = req.cookies['user_id'];
   const user = userDatabase[userId];
+  const userList = urlsForUser(userId);
   const templateVars = {
-    urls: urlDatabase,
+    urls: userList,
     user,
     error: null
   };
-  
+  //check if there isnt a user logged in
+  if (!userId) {
+    res.status(403);
+    const templateVars = {
+      urls: urlDatabase,
+      user,
+      error: 'You must login or register first'
+    };
+    res.render('urls_login', templateVars);
+  }
+  console.log(userList);
   res.render('urls_index', templateVars);
 });
 
@@ -64,66 +94,99 @@ app.get('/urls/new', (req, res) => {
   const userId = req.cookies['user_id'];
   const user = userDatabase[userId];
   const templateVars = {
-    urls: urlDatabase,
+    urls: urlDatabase.longURL,
     user,
     error: null
   };
+  if (!userId) {
+    const templateVars = {
+      user: null,
+      urls: null,
+      error: 'You must login or register first'
+    };
+    res.render('urls_login', templateVars);
+  }
   res.render('urls_new', templateVars);
 });
 
 app.post('/urls', (req, res) => {
   const userId = req.cookies['user_id'];
-  if (!userId) {
-    const templateVars = {
-      user: null,
-      urls: null,
-      error: 'Must login first to shorten URL'
-    };
-    res.render('urls_new', templateVars);
-  } else {
-      let id = generateRandomString(); //generate random ID
-      urlDatabase[id] = req.body['longURL']; //store ID and long URL into urlDatabase object
-      res.redirect(`/urls/${id}`)
-    } // Redirect to new url with id as a path
+  let id = generateRandomString(); //generate random ID
+  //store ID and long URL into urlDatabase object
+  urlDatabase[id] = {
+    longURL: req.body['longURL'],
+    userID: userId
+  };
+  
+  urlDatabase[id].userID = userId;
+  res.redirect(`/urls/${id}`);
 });
 
 //add a new route for any ID that goes after urls and doesnt exist yet
 app.get('/urls/:id', (req, res) => {
   const userId = req.cookies['user_id'];
   const user = userDatabase[userId];
+  const urlUserId = urlDatabase[req.params.id].userID;
   const templateVars = {
     id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    longURL: urlDatabase[req.params.id].longURL,
     urls: urlDatabase,
     user
   };
+  if (!userId) {
+    const templateVars = {
+      user: null,
+      urls: null,
+      error: 'You must login or register first'
+    };
+    res.render('urls_login', templateVars);
+  }
+  //Checks if the id belongs to that user
+  if (userId !== urlUserId) {
+    res.status(404).send('404 Page not found');
+  }
+  
   res.render('urls_show', templateVars);
 });
 
 //redirect ID to longURL website
 app.get('/u/:id', (req, res) => {
   const id = req.params.id;
-  const longURL = urlDatabase[req.params.id]
+  const longURL = urlDatabase[req.params.id].longURL;
   if (!longURL) {
-    res.status(404).send('404 Page not found')
+    res.status(404).send('404 Page not found');
   }
   const templateVars = {
     id: id,
     longURL: longURL
-  }
+  };
   res.redirect(templateVars.longURL);
 });
 
 //update URL with a new URL entered in form
 app.post('/urls/:id/update', (req, res) => {
-  urlDatabase[req.params.id] = req.body['longURL'];
-  res.redirect('/urls');
+  const userId = req.cookies['user_id'];
+  const urlUserId = urlDatabase[req.params.id].userID;
+  //Checks if the id belongs to that user
+  if (userId !== urlUserId) {
+    res.status(404).send('404 Page not found');
+  } else {
+    urlDatabase[req.params.id].longURL = req.body['longURL'];
+    res.redirect('/urls');
+  }
 });
 
 //delete record
 app.post('/urls/:id/delete', (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect('/urls');
+  const userId = req.cookies['user_id'];
+  const urlUserId = urlDatabase[req.params.id].userID;
+  //Checks if the id belongs to that user
+  if (userId !== urlUserId) {
+    res.status(404).send('404 Page not found');
+  } else {
+    delete urlDatabase[req.params.id];
+    res.redirect('/urls');
+  }
 });
 
 //Login information into a cookie
@@ -161,7 +224,7 @@ app.get('/login', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
     id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    // longURL: urlDatabase[req.params.id].longURL,
     user,
     error: null
   };
