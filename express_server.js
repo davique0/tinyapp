@@ -1,7 +1,6 @@
 const express = require('express'); //add express library
 const app = express(); //define our app as an instance of express
 const PORT = 8080; //defines port at 8080
-// const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const bycrypt = require('bcryptjs');
 const { getUserByEmail } = require('./helpers');
@@ -14,14 +13,6 @@ app.use(cookieSession({
 }));
 
 const urlDatabase = {
-  'bZxVnZ': {
-    longURL: 'http://www.lighthouselabs.ca',
-    userID: 'aJ48lW'
-  },
-  '9sm5xK': {
-    longURL: 'http://www.google.com',
-    userID: 'aJ48lW'
-  }
 };
 
 //Generate 5 random characters string
@@ -36,13 +27,7 @@ const generateRandomString = () => {
 
 //User Database
 const userDatabase = {
-  'randomUser1': {
-    id: 'jk2701',
-    email: 'email@example.com',
-    password: '1234'
-  }
 };
-
 
 //Returns personilized urls per user
 const urlsForUser = (id) => {
@@ -207,8 +192,7 @@ app.post('/login', (req, res) => {
     };
     res.render('urls_login', templateVars);
   }
-  if (user && passVal) { //user.password === userPass
-    //res.cookie('user_id', user.id);
+  if (user && passVal) {
     req.session.user_id = user.id;
     res.redirect('/urls');
   } else {
@@ -280,7 +264,6 @@ app.post('/register', (req, res) => {
         email: userEmail,
         password: hashedPass
       };
-      // res.cookie('user_id', id);
       req.session.user_id = id;
       res.redirect('/urls');
     } else {
