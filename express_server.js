@@ -2,8 +2,9 @@ const express = require('express'); //add express library
 const app = express(); //define our app as an instance of express
 const PORT = 8080; //defines port at 8080
 // const cookieParser = require('cookie-parser');
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
 const bycrypt = require('bcryptjs');
+const { getUserByEmail } = require('./helpers');
 
 app.set('view engine', 'ejs'); //set EJS as our template engine
 app.use(express.urlencoded({ extended: true })); //Make buffer readable
@@ -42,15 +43,6 @@ const userDatabase = {
   }
 };
 
-//Check if email and password arent empty and if they are already in the database
-const lookUpHelper = (email) => {
-  for (const userId in userDatabase) {
-    if (userDatabase[userId].email === email) {
-      return userDatabase[userId];
-    }
-  }
-  return null;
-};
 
 //Returns personilized urls per user
 const urlsForUser = (id) => {
@@ -195,7 +187,7 @@ app.post('/urls/:id/delete', (req, res) => {
 app.post('/login', (req, res) => {
   const userEmail = req.body.email;
   const userPass = req.body.password;
-  const user = lookUpHelper(userEmail);
+  const user = getUserByEmail(userEmail, userDatabase);
   if (!user) {
     res.status(403);
     const templateVars = {
@@ -281,12 +273,12 @@ app.post('/register', (req, res) => {
     };
     res.render('urls_register', templateVars);
   } else {
-    const user = lookUpHelper(userEmail);
+    const user = getUserByEmail(userEmail, userDatabase);
     if (!user) {
       userDatabase[id] = {
         id,
         email: userEmail,
-        password: hashedPass 
+        password: hashedPass
       };
       // res.cookie('user_id', id);
       req.session.user_id = id;
@@ -312,3 +304,4 @@ app.get('/urls.json', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
