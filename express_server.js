@@ -1,12 +1,16 @@
 const express = require('express'); //add express library
 const app = express(); //define our app as an instance of express
 const PORT = 8080; //defines port at 8080
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session')
 const bycrypt = require('bcryptjs');
 
 app.set('view engine', 'ejs'); //set EJS as our template engine
 app.use(express.urlencoded({ extended: true })); //Make buffer readable
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['monkeyPotato'],
+}));
 
 const urlDatabase = {
   'bZxVnZ': {
@@ -51,7 +55,6 @@ const lookUpHelper = (email) => {
 //Returns personilized urls per user
 const urlsForUser = (id) => {
   let userIdUrls = {};
-  //urlDatabase.userID === id
   for (const urlId in urlDatabase) {
     if (urlDatabase[urlId].userID === id) {
       userIdUrls[urlId] = urlDatabase[urlId];
@@ -67,7 +70,7 @@ app.get("/", (req, res) => {
 
 //add route for /urls
 app.get('/urls', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session['user_id'];
   const user = userDatabase[userId];
   const userList = urlsForUser(userId);
   const templateVars = {
@@ -90,7 +93,7 @@ app.get('/urls', (req, res) => {
 
 //add a new route to 'new' page
 app.get('/urls/new', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session['user_id'];
   const user = userDatabase[userId];
   const templateVars = {
     urls: urlDatabase.longURL,
@@ -109,7 +112,7 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.post('/urls', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session['user_id'];
   let id = generateRandomString(); //generate random ID
   //store ID and long URL into urlDatabase object
   urlDatabase[id] = {
@@ -123,7 +126,7 @@ app.post('/urls', (req, res) => {
 
 //add a new route for any ID that goes after urls and doesnt exist yet
 app.get('/urls/:id', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session['user_id'];
   const user = userDatabase[userId];
   const urlUserId = urlDatabase[req.params.id].userID;
   const templateVars = {
@@ -164,7 +167,7 @@ app.get('/u/:id', (req, res) => {
 
 //update URL with a new URL entered in form
 app.post('/urls/:id/update', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session['user_id'];
   const urlUserId = urlDatabase[req.params.id].userID;
   //Checks if the id belongs to that user
   if (userId !== urlUserId) {
@@ -177,7 +180,7 @@ app.post('/urls/:id/update', (req, res) => {
 
 //delete record
 app.post('/urls/:id/delete', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session['user_id'];
   const urlUserId = urlDatabase[req.params.id].userID;
   //Checks if the id belongs to that user
   if (userId !== urlUserId) {
@@ -193,6 +196,15 @@ app.post('/login', (req, res) => {
   const userEmail = req.body.email;
   const userPass = req.body.password;
   const user = lookUpHelper(userEmail);
+  if (!user) {
+    res.status(403);
+    const templateVars = {
+      user: null,
+      urls: null,
+      error: 'User isn\'t registered'
+    };
+    res.render('urls_login', templateVars);
+  }
   const passVal = bycrypt.compareSync(userPass, user.password);
   if (!userEmail || !userPass) {
     res.status(400);
@@ -204,14 +216,15 @@ app.post('/login', (req, res) => {
     res.render('urls_login', templateVars);
   }
   if (user && passVal) { //user.password === userPass
-    res.cookie('user_id', user.id);
+    //res.cookie('user_id', user.id);
+    req.session.user_id = user.id;
     res.redirect('/urls');
   } else {
     res.status(403);
     const templateVars = {
       user: null,
       urls: null,
-      error: 'Check email and password'
+      error: 'Wrong password'
     };
     res.render('urls_login', templateVars);
   }
@@ -219,7 +232,7 @@ app.post('/login', (req, res) => {
 
 //Render Login page
 app.get('/login', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session['user_id'];
   const user = userDatabase[userId];
   const templateVars = {
     urls: urlDatabase,
@@ -235,13 +248,13 @@ app.get('/login', (req, res) => {
 
 //logout, clearing out cookies
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  res.clearCookie('session');
   res.redirect('/login');
 });
 
 //New User registration
 app.get('/register', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session['user_id'];
   const user = userDatabase[userId];
   const templateVars = {
     urls: urlDatabase,
@@ -275,7 +288,8 @@ app.post('/register', (req, res) => {
         email: userEmail,
         password: hashedPass 
       };
-      res.cookie('user_id', id);
+      // res.cookie('user_id', id);
+      req.session.user_id = id;
       res.redirect('/urls');
     } else {
       const templateVars = {
